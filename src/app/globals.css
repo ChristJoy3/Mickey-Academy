@@ -1,26 +1,274 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Palette: brief's fallback (no standalone logo file was available to sample).
+   Text on coral/yellow/sky/mint is always navy; white text only on navy. */
+@theme {
+  --color-cream: #fff8ee;
+  --color-cream-deep: #fbefdc;
+  --color-navy: #1e2a4a;
+  --color-navy-soft: #46506b;
+  --color-sun: #ffc93c;
+  --color-sun-tint: #fff1c7;
+  --color-coral: #ff7a6b;
+  --color-coral-tint: #ffe1dc;
+  --color-sky: #7cc6e8;
+  --color-sky-tint: #dff1fa;
+  --color-mint: #9adbc5;
+  --color-mint-tint: #def5ec;
+  /* Darker ink versions for small text on light backgrounds (AA). */
+  --color-coral-ink: #b93a2b;
+  --color-sky-ink: #1d6a8d;
+  --color-mint-ink: #1d6b53;
+
+  --font-display: var(--font-fredoka), ui-rounded, system-ui, sans-serif;
+  --font-sans: var(--font-nunito), system-ui, sans-serif;
+
+  --radius-card: 32px;
+
+  --animate-marquee: marquee 60s linear infinite;
+  --animate-float: float 9s ease-in-out infinite;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
   }
 }
 
+@keyframes float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -18px;
+  }
+}
+
+@keyframes wiggle {
+  0%,
+  100% {
+    rotate: 0deg;
+  }
+  25% {
+    rotate: -3deg;
+  }
+  75% {
+    rotate: 3deg;
+  }
+}
+
+html {
+  scroll-padding-top: 6rem;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-cream);
+  color: var(--color-navy);
+  font-family: var(--font-sans);
+  font-size: 1.0625rem; /* 17px */
+  line-height: 1.65;
+  overflow-x: clip;
+}
+
+@media (min-width: 768px) {
+  body {
+    font-size: 1.125rem; /* 18px */
+  }
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-navy);
+  outline-offset: 3px;
+  border-radius: 12px;
+}
+
+/* Lenis recommended styles */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-display text-lg font-semibold whitespace-nowrap transition-[background-color,box-shadow,translate] duration-200;
+  }
+  .btn-primary {
+    @apply bg-coral text-navy shadow-[0_6px_0_0_var(--color-navy)] hover:-translate-y-0.5 hover:shadow-[0_8px_0_0_var(--color-navy)] active:translate-y-1 active:shadow-[0_2px_0_0_var(--color-navy)];
+  }
+  .btn-secondary {
+    @apply border-2 border-navy bg-white/70 text-navy hover:bg-sun;
+  }
+  .btn-dark {
+    @apply bg-navy text-cream hover:bg-navy-soft;
+  }
+  .wiggle:hover,
+  .wiggle:focus-visible {
+    animation: wiggle 0.4s ease-in-out;
+  }
+
+  .eyebrow {
+    @apply font-display text-sm font-semibold tracking-[0.18em] uppercase;
+  }
+  .section-title {
+    @apply font-display text-4xl font-semibold text-navy sm:text-5xl lg:text-6xl;
+  }
+  .card {
+    @apply rounded-[var(--radius-card)] bg-white p-7 shadow-[0_10px_30px_-12px_rgb(30_42_74/0.18)];
+  }
+  .polaroid {
+    @apply relative rounded-2xl bg-white p-3 pb-10 shadow-[0_18px_40px_-16px_rgb(30_42_74/0.35)];
+  }
+}
+
+/* Elements hidden until GSAP reveals them. Only applied when JS + motion are available. */
+html.js-motion [data-reveal],
+html.js-motion [data-hero-letter] {
+  visibility: hidden;
+}
+
+/* Rooms: swipe carousel by default; pinned horizontal track on desktop motion. */
+[data-rooms].is-pinned [data-rooms-viewport] {
+  overflow: visible;
+  scroll-snap-type: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .animate-marquee {
+    animation: none !important;
+  }
+}
+
+[data-rooms].is-pinned {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* ---------- Loader ---------- */
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  background: var(--color-cream);
+  transition:
+    opacity 0.6s ease,
+    visibility 0.6s;
+  /* Failsafe: hide even if scripts never run. */
+  animation: loader-out 0.6s ease 6.5s forwards;
+}
+.loader-inner {
+  display: flex;
+  width: min(78vw, 24rem);
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  transition:
+    transform 0.6s cubic-bezier(0.7, 0, 0.3, 1),
+    opacity 0.45s ease;
+}
+.loader-logo {
+  width: 100%;
+  animation: loader-bob 2.4s ease-in-out 1s infinite;
+}
+.loader-logo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 0.6rem;
+  clip-path: inset(0 100% 0 0 round 0.6rem);
+  animation: loader-wipe 0.9s cubic-bezier(0.65, 0, 0.35, 1) 0.1s forwards;
+}
+.loader-track {
+  width: 46%;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(30 42 74 / 0.08);
+}
+.loader-bar {
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ffd60a, #ff4fb8, #22d3ee, #ff3b30, #8fe04a);
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: loader-fill 2.6s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+  transition: transform 0.35s ease;
+}
+.loader.is-done {
+  opacity: 0;
+  visibility: hidden;
+}
+.loader.is-done .loader-inner {
+  transform: translateY(-14px) scale(0.97);
+  opacity: 0;
+}
+.loader.is-done .loader-bar {
+  animation: none;
+  transform: scaleX(1);
+}
+
+@keyframes loader-wipe {
+  to {
+    clip-path: inset(0 0 0 0 round 0.6rem);
+  }
+}
+@keyframes loader-fill {
+  to {
+    transform: scaleX(0.88);
+  }
+}
+@keyframes loader-bob {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -5px;
+  }
+}
+@keyframes loader-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader-logo,
+  .loader-logo img {
+    animation: none !important;
+    clip-path: none;
+  }
 }
